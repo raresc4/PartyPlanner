@@ -14,6 +14,8 @@ import org.example.backend.configs.JwtUtil;
 import org.example.backend.models.ResponseJson;
 import org.example.backend.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.security.crypto.bcrypt.BCrypt;
@@ -32,6 +34,15 @@ public class UserControllers {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @GetMapping("/getToken")
+    public ResponseJson someEndpoint(@CookieValue(name = "token", required = false) String token) {
+        if (token != null) {
+            // Process the token as needed
+            return new ResponseJson(200, true, "Token found", token);
+        }
+        return new ResponseJson(404, false, "Token not found");
+    }
+
     @GetMapping("/find/{username}")
     public ResponseJson responseJson(@PathVariable String username){
         String DB_URL = GetProperties.getURL();
@@ -43,22 +54,6 @@ public class UserControllers {
             return new ResponseJson(200, true, "User found");
         } else {
             return new ResponseJson(404, false, "User not found");
-        }
-    }
-    private String getToken(String username) {
-        String secretKey = GetProperties.getTokenSecret();
-        Map<String, Object> claims = new HashMap<>();
-        try {
-            return Jwts.builder()
-                    .setClaims(claims)
-                    .setSubject("rares")
-                    .setIssuedAt(new Date(System.currentTimeMillis()))
-                    .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours
-                    .signWith(SignatureAlgorithm.HS256, secretKey)
-                    .compact();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "Error generating token";
         }
     }
 
@@ -74,9 +69,9 @@ public class UserControllers {
             if (BCrypt.checkpw(userForm.getPassword(), hashedPassword)) {
                 String token = jwtUtil.getToken(userForm.getUsername());
                 Cookie cookie = new Cookie("token", token);
-                cookie.setHttpOnly(true); // Prevents JavaScript access to the cookie
-                cookie.setPath("/"); // Set the path for the cookie (accessible in the whole application)
-                cookie.setSecure(true); // Set to true if using HTTPS
+                cookie.setHttpOnly(true);
+                cookie.setPath("/");
+                cookie.setSecure(true);
                 response.addCookie(cookie);
                 return new ResponseJson(200, true, "Login successful", token);
             } else {
