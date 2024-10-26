@@ -6,9 +6,13 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.example.backend.configs.DatabaseConfig;
+import org.example.backend.configs.JwtUtil;
 import org.example.backend.models.ResponseJson;
 import org.example.backend.models.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -18,6 +22,8 @@ import org.example.backend.configs.GetProperties;
 @RestController
 @RequestMapping("/user")
 public class UserControllers {
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @GetMapping("/find/{username}")
     public ResponseJson responseJson(@PathVariable String username){
@@ -33,15 +39,37 @@ public class UserControllers {
         }
     }
 
+    @PostMapping("/login")
+    public ResponseJson login(@RequestBody User userForm) {
+        String DB_URL = GetProperties.getURL();
+        MongoClient mongoClient = MongoClients.create(DB_URL);
+        MongoDatabase database = mongoClient.getDatabase("CoolCluster");
+        MongoCollection<Document> userCollection = database.getCollection("users");
+        Document user = userCollection.find(new Document("username", userForm.getUsername())).first();
+        if (user != null) {
+            String hashedPassword = user.getString("password");
+            if (BCrypt.checkpw(userForm.getPassword(), hashedPassword)) {
+                String token = jwtUtil.generateToken(userForm.getUsername());
+                return new ResponseJson(200, true, "Login successful", token);
+            } else {
+                return new ResponseJson(404, false, "Login failed");
+            }
+        } else {
+            return new ResponseJson(404, false, "User not found");
+        }
+    }
+
     @PostMapping("/register")
     public ResponseJson getUserInfo(@RequestBody User userForm) {
         String DB_URL = GetProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
         MongoCollection<Document> userCollection = database.getCollection("users");
-        Document user = new Document("username", userForm.getUsername())
-                .append("password", userForm.getPassword());
         try {
+            String salt = BCrypt.gensalt(10);
+            String hashedPassword = BCrypt.hashpw(userForm.getPassword(), salt);
+            Document user = new Document("username", userForm.getUsername())
+                    .append("password", hashedPassword);
             userCollection.insertOne(user);
            return new ResponseJson(200, true, "User inserted successfully");
         } catch (Exception e) {
