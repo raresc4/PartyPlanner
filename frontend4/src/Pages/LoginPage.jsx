@@ -1,10 +1,12 @@
 import React from "react";
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const navigate = useNavigate();
 
     const [next, setNext] = useState(true);
     return (
@@ -32,19 +34,33 @@ export default function LoginPage() {
     <div class="flex w-full items-center">
       <button class="shrink-0 inline-block w-36 rounded-lg bg-blue-600 py-3 font-bold text-white"
       onClick={() => {
-        axios.post("http://localhost:8080/user/login", {
-          username: username,
-          password: password
-        }).then((response) => {
-          console.log(response.data);
-          if(response.data.code === 200){
-            alert("Logged in successfully");
+        (async () => {
+          const username2 = "rares"; 
+          const password2 = "rares"; 
+          const credentials = btoa(`${username2}:${password2}`);
+          try {
+          const response = await fetch("http://localhost:8080/user/login", {
+            method : "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Basic ${credentials}`
+            },
+            body: JSON.stringify({username, password}),
+            credentials: 'include'
+          });
+          const data = await response.json();
+          console.log(data);
+          console.log(username, password);  
+          if(data.success){
+            navigate("/");
           } else {
             alert("Invalid credentials");
           }
-        });
+        } catch (error) {
+          alert("Error");
+        }
+        })();     
       }}>Login</button>
-      <a class="w-full text-center text-sm font-medium text-gray-600 hover:underline" href="#">Forgot your password?</a>
     </div>
     <p class="text-center text-gray-600">
       Don't have an account?
