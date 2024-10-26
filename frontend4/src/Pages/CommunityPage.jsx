@@ -1,5 +1,5 @@
 import { useState,useEffect } from "react";
-import Cookies from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
 
 export default function CommunityPage() {
     const [ users, setUsers] = useState([
@@ -7,12 +7,29 @@ export default function CommunityPage() {
             name: 'John Doe'
         },
     ]);
-
-    const [jwtToken , setJwtToken] = useState('');
+    const user = process.env.REACT_APP_USERNAME;
+    const pass = process.env.REACT_APP_PASSWORD;
+    const [logedUser, setLogedUser] = useState('');
     
     useEffect(() => {
-        const token = Cookies.get('token');
-        console.log(token);
+        (async () => {
+            const username2 = process.env.REACT_APP_USERNAME; 
+          const password2 = process.env.REACT_APP_PASSWORD; 
+          const credentials = btoa(`${username2}:${password2}`);
+            const response = await fetch("http://localhost:8080/user/getToken", {
+            method : "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Basic ${credentials}`
+            },
+            credentials: 'include'
+          });
+            const data = await response.json();
+            console.log(data.jwtToken);
+            const decoded = jwtDecode(data.jwtToken);
+            setLogedUser(decoded.sub);
+            console.log(decoded.sub);
+        })();
     }, []);
 
     const [ tasks, setTasks ] = useState([

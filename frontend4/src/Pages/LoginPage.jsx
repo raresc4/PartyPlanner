@@ -13,9 +13,9 @@ export default function LoginPage() {
        <>
         <div class="flex h-screen w-screen items-center overflow-hidden px-2">
   <div class="relative flex w-96 flex-col space-y-5 rounded-lg border bg-white px-5 py-10 shadow-xl sm:mx-auto">
-    <div class="-z-10 absolute top-4 left-1/2 h-full w-5/6 -translate-x-1/2 rounded-lg bg-blue-600 sm:-right-10 sm:top-auto sm:left-auto sm:w-full sm:translate-x-0"></div>
+    <div class="-z-10 absolute top-4 left-1/2 h-full w-5/6 -translate-x-1/2 rounded-lg bg-black sm:-right-10 sm:top-auto sm:left-auto sm:w-full sm:translate-x-0"></div>
     <div class="mx-auto mb-2 space-y-3">
-      <h1 class="text-center text-3xl font-bold text-gray-700">Sign in</h1>
+      <h1 class="text-center text-3xl font-bold text-gray-900">Sign in</h1>
       <p class="text-gray-500">Sign in to access your account</p>
     </div>
     <div>
@@ -32,11 +32,11 @@ export default function LoginPage() {
       </div>
     </div>
     <div class="flex w-full items-center">
-      <button class="shrink-0 inline-block w-36 rounded-lg bg-blue-600 py-3 font-bold text-white"
+      <button class="shrink-0 inline-block w-36 rounded-lg bg-black py-3 font-bold text-white"
       onClick={() => {
         (async () => {
-          const username2 = "rares"; 
-          const password2 = "rares"; 
+          const username2 = process.env.REACT_APP_USERNAME;
+          const password2 = process.env.REACT_APP_PASSWORD;
           const credentials = btoa(`${username2}:${password2}`);
           try {
           const response = await fetch("http://localhost:8080/user/login", {
