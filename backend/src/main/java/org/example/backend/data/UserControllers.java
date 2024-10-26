@@ -4,6 +4,8 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.bson.Document;
 import org.example.backend.configs.DatabaseConfig;
 import org.example.backend.configs.JwtUtil;
@@ -16,6 +18,9 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.example.backend.configs.GetProperties;
@@ -38,6 +43,22 @@ public class UserControllers {
             return new ResponseJson(404, false, "User not found");
         }
     }
+    private String getToken(String username) {
+        String secretKey = GetProperties.getTokenSecret();
+        Map<String, Object> claims = new HashMap<>();
+        try {
+            return Jwts.builder()
+                    .setClaims(claims)
+                    .setSubject("rares")
+                    .setIssuedAt(new Date(System.currentTimeMillis()))
+                    .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours
+                    .signWith(SignatureAlgorithm.HS256, secretKey)
+                    .compact();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error generating token";
+        }
+    }
 
     @PostMapping("/login")
     public ResponseJson login(@RequestBody User userForm) {
@@ -49,7 +70,7 @@ public class UserControllers {
         if (user != null) {
             String hashedPassword = user.getString("password");
             if (BCrypt.checkpw(userForm.getPassword(), hashedPassword)) {
-                String token = jwtUtil.generateToken(userForm.getUsername());
+                String token = jwtUtil.getToken(userForm.getUsername());
                 return new ResponseJson(200, true, "Login successful", token);
             } else {
                 return new ResponseJson(404, false, "Login failed");
