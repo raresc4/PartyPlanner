@@ -6,6 +6,8 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.bson.Document;
 import org.example.backend.configs.DatabaseConfig;
 import org.example.backend.configs.JwtUtil;
@@ -61,7 +63,7 @@ public class UserControllers {
     }
 
     @PostMapping("/login")
-    public ResponseJson login(@RequestBody User userForm) {
+    public ResponseJson login(@RequestBody User userForm, HttpServletResponse response) {
         String DB_URL = GetProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
@@ -71,6 +73,11 @@ public class UserControllers {
             String hashedPassword = user.getString("password");
             if (BCrypt.checkpw(userForm.getPassword(), hashedPassword)) {
                 String token = jwtUtil.getToken(userForm.getUsername());
+                Cookie cookie = new Cookie("token", token);
+                cookie.setHttpOnly(true); // Prevents JavaScript access to the cookie
+                cookie.setPath("/"); // Set the path for the cookie (accessible in the whole application)
+                cookie.setSecure(true); // Set to true if using HTTPS
+                response.addCookie(cookie);
                 return new ResponseJson(200, true, "Login successful", token);
             } else {
                 return new ResponseJson(404, false, "Login failed");
