@@ -40,24 +40,25 @@ export default function RegisterPage() {
         password: pass
       }
     }).then((response) => {
-      if(response.code === 200){
+      console.log(response.data);
+      if(response.data.succes === false){
         alert("User already exists");
         setNext(false);
       } else {
         alert("Passed1");
       }
     });
-    if(setNext){
+    if(next){
       axios.post("http://localhost:8080/user/register", {
         username: username,
-        password: "bcrypt.hashSync(password, salt)"
+        password: password
       }, {
         auth: {
           username: user,
           password: pass
         }
       }).then((response) => {
-        if(response.code === 200){
+        if(response.data.code === 200){
           alert("User created successfully");
         } else {
           alert("Failed to create user");

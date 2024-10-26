@@ -1,10 +1,12 @@
 import React from "react";
 import { useState } from "react";
+import axios from "axios";
 
 export default function LoginPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
+    const [next, setNext] = useState(true);
     return (
        <>
         <div class="flex h-screen w-screen items-center overflow-hidden px-2">
@@ -28,7 +30,20 @@ export default function LoginPage() {
       </div>
     </div>
     <div class="flex w-full items-center">
-      <button class="shrink-0 inline-block w-36 rounded-lg bg-blue-600 py-3 font-bold text-white">Login</button>
+      <button class="shrink-0 inline-block w-36 rounded-lg bg-blue-600 py-3 font-bold text-white"
+      onClick={() => {
+        axios.post("http://localhost:8080/user/login", {
+          username: username,
+          password: password
+        }).then((response) => {
+          console.log(response.data);
+          if(response.data.code === 200){
+            alert("Logged in successfully");
+          } else {
+            alert("Invalid credentials");
+          }
+        });
+      }}>Login</button>
       <a class="w-full text-center text-sm font-medium text-gray-600 hover:underline" href="#">Forgot your password?</a>
     </div>
     <p class="text-center text-gray-600">
