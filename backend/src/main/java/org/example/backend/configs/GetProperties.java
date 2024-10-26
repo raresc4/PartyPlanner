@@ -15,4 +15,16 @@ public class GetProperties {
             return null;
         }
     }
+
+    public static String getTokenSecret() {
+        Properties prop = new Properties();
+        try {
+            prop.load(new FileInputStream("src/main/resources/application.properties"));
+            String tokenSecret = prop.getProperty("tokenSecret");
+            return tokenSecret;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }
