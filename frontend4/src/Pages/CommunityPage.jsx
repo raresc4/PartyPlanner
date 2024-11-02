@@ -9,7 +9,8 @@ export default function CommunityPage() {
     ]);
     const user = process.env.REACT_APP_USERNAME;
     const pass = process.env.REACT_APP_PASSWORD;
-    const [logedUser, setLogedUser] = useState('');
+    const [loggedUser, setLoggedUser] = useState('');
+    const [tokenExists, setTokenExists] = useState(false);
     
     useEffect(() => {
         (async () => {
@@ -26,9 +27,14 @@ export default function CommunityPage() {
           });
             const data = await response.json();
             console.log(data.jwtToken);
+            if(data.jwtToken != null){
             const decoded = jwtDecode(data.jwtToken);
-            setLogedUser(decoded.sub);
+            setLoggedUser(decoded.sub);
             console.log(decoded.sub);
+            setTokenExists(true);
+            } else {
+                console.log("No token");
+            }
         })();
     }, []);
 
@@ -56,23 +62,11 @@ export default function CommunityPage() {
             description: 'Description 4',
             progress: 50,
             assignee: 'jane_doe',
-        },
-        {
-            title: 'Task 5',
-            description: 'Description 5',
-            progress: 50,
-            assignee: 'john_doe',
-        }, 
-        {
-            title: 'Task 6',
-            description: 'Description 6',
-            progress: 50,
-            assignee: 'jane_doe',
         }
     ]);
 
 
-    return (
+    return tokenExists ? (
         <div className='w-full h-full flex flex-row justify-center items-start gap-x-8'>
             <div className='flex flex-col justify-start items-start h-full w-64 p-4 border-8 border-gray-600 gap-y-4'>
                 <h1 className='text-2xl font-bold'> Members </h1>
@@ -133,5 +127,9 @@ export default function CommunityPage() {
                 ))}
             </div>
         </div>
-    )
+    ) : (
+        <div className='w-full h-full flex flex-row justify-center items-center'>
+            <h1 className='text-4xl font-bold'> Please log in first </h1>
+        </div>
+    );
 }

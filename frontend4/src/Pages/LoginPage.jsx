@@ -52,7 +52,7 @@ export default function LoginPage() {
           console.log(data);
           console.log(username, password);  
           if(data.success){
-            navigate("/");
+            navigate("/camera");
           } else {
             alert("Invalid credentials");
           }

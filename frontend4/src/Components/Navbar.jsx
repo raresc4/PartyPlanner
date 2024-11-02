@@ -1,6 +1,10 @@
 import { UsersRound } from "lucide-react";
+import { useNavigate } from "react-router";
 
 export default function Navbar() {
+    const navigate = useNavigate();
+    const user = process.env.REACT_APP_USERNAME;
+    const pass = process.env.REACT_APP_PASSWORD;
     return(<>
     <div
     className="w-full h-auto pt-5 pl-8 pr-8 flex flex-row items-center justify-between"
@@ -14,6 +18,24 @@ export default function Navbar() {
             <li className="hover:font-bold hover:transition-all hover:cursor-pointer">Parties</li>
             <li className="hover:font-bold hover:transition-all hover:cursor-pointer">Profile</li>
             <li className="hover:font-bold hover:transition-all hover:cursor-pointer">About</li>
+            <li onClick={ () => {
+                const credentials = btoa(`${user}:${pass}`);
+                (async () => {
+                    try {
+                    await fetch("http://localhost:8080/user/logout", {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Basic ${credentials}`
+                        },
+                        credentials: 'include'
+                    });
+                } catch (error) {
+                    alert("Error");
+                }
+                    navigate("/");
+                })();
+            }} className="hover:font-bold hover:transition-all hover:cursor-pointer">Log out</li>
         </ul>
 
 

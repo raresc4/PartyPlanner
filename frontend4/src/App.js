@@ -4,7 +4,7 @@ import RegisterPage from './Pages/RegisterPage';
 import CommunityPage from './Pages/CommunityPage';
 import MainPage from './Pages/MainPage';
 import BaseLayout from './Layouts/BaseLayout';
-
+import ProfilePage from './Pages/ProfilePage';
 
 function App() {
   return (
@@ -12,12 +12,15 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/" element={
+        <Route path ="/profile" element={ 
+          <ProfilePage />
+        } />
+        <Route path="/camera" element={
           <BaseLayout>
           <CommunityPage />
           </BaseLayout>
           } />
-        <Route path="/main" element={<MainPage />} />
+        <Route path="/" element={<MainPage />} />
       </Routes>
     </BrowserRouter>
   );
