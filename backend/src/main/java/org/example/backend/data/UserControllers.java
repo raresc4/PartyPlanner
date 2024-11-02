@@ -37,10 +37,20 @@ public class UserControllers {
     @GetMapping("/getToken")
     public ResponseJson someEndpoint(@CookieValue(name = "token", required = false) String token) {
         if (token != null) {
-            // Process the token as needed
             return new ResponseJson(200, true, "Token found", token);
         }
-        return new ResponseJson(404, false, "Token not found");
+        return new ResponseJson(404, false, "Token not found",null);
+    }
+
+    @GetMapping("/logout")
+    public ResponseJson logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie("token", "");
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setSecure(true);
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+        return new ResponseJson(200, true, "Logged out", null);
     }
 
     @GetMapping("/find/{username}")
