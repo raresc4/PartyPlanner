@@ -16,7 +16,7 @@ export default function Navbar() {
 
         <ul className="list-none flex flex-row gap-x-5 text-2xl">
             <li className="hover:font-bold hover:transition-all hover:cursor-pointer">Parties</li>
-            <li className="hover:font-bold hover:transition-all hover:cursor-pointer">Profile</li>
+            <li className="hover:font-bold hover:transition-all hover:cursor-pointer" onClick={() => navigate('/profile')}>Profile</li>
             <li className="hover:font-bold hover:transition-all hover:cursor-pointer">About</li>
             <li onClick={ () => {
                 const credentials = btoa(`${user}:${pass}`);

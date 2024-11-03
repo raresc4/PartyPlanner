@@ -1,5 +1,6 @@
 import React from 'react';
 import { useEffect,useState } from 'react';
+import { useNavigate } from 'react-router';
 import { jwtDecode } from 'jwt-decode';
 import TaskModal from '../Components/TaskModal';
 import BaseLayout from '../Layouts/BaseLayout';
@@ -7,6 +8,8 @@ import BaseLayout from '../Layouts/BaseLayout';
 const ProfilePage = () => {
     const [tokenExists, setTokenExists] = useState(false);
     const [loggedUser, setLoggedUser] = useState('');
+    const [id, setId] = useState(Number);
+    const navigate = useNavigate();
 
 useEffect( () => {
         (async () => {
@@ -37,6 +40,7 @@ useEffect( () => {
   const closeModal = () => setModalOpen(false); // Ensure this is defined
     const [isModalOpen, setModalOpen] = useState(false);
   return tokenExists ? (
+    <div className="w-[100vw] h-[100vh] flex flex-col items-start pt-2 pl-2 pr-2 justify-between">
     <BaseLayout>
     <div className="flex flex-1 items-center justify-center bg-gray-100">
       <div className="bg-white p-8 shadow-lg rounded-lg border border-gray-200 max-w-md w-full">
@@ -62,21 +66,47 @@ useEffect( () => {
           <div className="flex items-center space-x-3">
             <input
               type="text"
-              placeholder="Search parties..."
+              placeholder="Enter the party code"
+              onChange={(e) => setId(Number(e.target.value))}
               className="border border-gray-300 p-2 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
-            <button className="bg-black text-white px-4 py-2 rounded-lg transition duration-200">Search</button>
           </div>
           
           <div className="flex space-x-3 justify-center">
             <button className="bg-black text-white px-4 py-2 rounded-lg  transition duration-200" onClick={openModal}>Create Party</button>
-            <TaskModal isOpen={isModalOpen} onClose={closeModal} />
-            <button className="bg-black text-white px-4 py-2 rounded-lg  transition duration-200">Join Party</button>
+            <TaskModal isOpen={isModalOpen} onClose={closeModal}/>
+            <button className="bg-black text-white px-4 py-2 rounded-lg  transition duration-200" onClick={() => {
+              (async () => {
+                try {
+                  const username2 = process.env.REACT_APP_USERNAME;
+                  const password2 = process.env.REACT_APP_PASSWORD;
+                  const credentials = btoa(`${username2}:${password2}`);
+                  const response = await fetch(`http://localhost:8080/events/getUsers/${id}`, {
+                    method: "GET",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "Authorization": `Basic ${credentials}`
+                    },
+                    credentials: 'include'
+                  });
+                  const data = await response.json();
+                  const allowedUsers = data.allowedUsers;
+                  if(allowedUsers.includes(loggedUser)) {
+                    navigate(`/camera/${id}`);
+                  } else {
+                    alert("You are not allowed to join this party");
+                  }
+                } catch (error) {
+                  alert("Error");
+                }
+              })();
+            }}>Join Party</button>
           </div>
         </div>
       </div>
     </div>
     </BaseLayout>
+    </div>
   ) : (
     <div className="flex flex-1 items-center justify-center bg-gray-100">
       <div className="bg-white p-8 shadow-lg rounded-lg border border-gray-200 max-w-md w-full">

@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Router, Navigate } from "react-router-dom
 import RegisterPage from './Pages/RegisterPage';
 import CommunityPage from './Pages/CommunityPage';
 import MainPage from './Pages/MainPage';
-import BaseLayout from './Layouts/BaseLayout';
 import ProfilePage from './Pages/ProfilePage';
 
 function App() {
@@ -15,11 +14,7 @@ function App() {
         <Route path ="/profile" element={ 
           <ProfilePage />
         } />
-        <Route path="/camera" element={
-          <BaseLayout>
-          <CommunityPage />
-          </BaseLayout>
-          } />
+        <Route path="/camera/:id" element={<CommunityPage />} />
         <Route path="/" element={<MainPage />} />
       </Routes>
     </BrowserRouter>
