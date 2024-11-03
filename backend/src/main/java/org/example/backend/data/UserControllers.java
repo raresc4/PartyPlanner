@@ -4,28 +4,16 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bson.Document;
-import org.example.backend.configs.DatabaseConfig;
 import org.example.backend.configs.JwtUtil;
 import org.example.backend.models.ResponseJson;
 import org.example.backend.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.security.crypto.bcrypt.BCrypt;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 
 import org.example.backend.configs.GetProperties;
 @RestController
@@ -78,6 +66,7 @@ public class UserControllers {
             String hashedPassword = user.getString("password");
             if (BCrypt.checkpw(userForm.getPassword(), hashedPassword)) {
                 String token = jwtUtil.getToken(userForm.getUsername());
+                System.out.println(userForm.getUsername());
                 Cookie cookie = new Cookie("token", token);
                 cookie.setHttpOnly(true);
                 cookie.setPath("/");

@@ -16,7 +16,7 @@ public class JwtUtil {
         try {
             return Jwts.builder()
                     .setClaims(claims)
-                    .setSubject("rares")
+                    .setSubject(username)
                     .setIssuedAt(new Date(System.currentTimeMillis()))
                     .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours
                     .signWith(SignatureAlgorithm.HS256, secretKey)
