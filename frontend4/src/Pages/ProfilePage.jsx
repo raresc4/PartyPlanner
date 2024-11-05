@@ -97,7 +97,7 @@ useEffect( () => {
                     alert("You are not allowed to join this party");
                   }
                 } catch (error) {
-                  alert("Error");
+                  alert("The party does not exist");
                 }
               })();
             }}>Join Party</button>

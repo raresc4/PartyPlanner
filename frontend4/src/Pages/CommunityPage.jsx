@@ -1,5 +1,5 @@
 import { useState,useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { jwtDecode } from 'jwt-decode';
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
@@ -9,6 +9,8 @@ export default function CommunityPage() {
     const [date , setDate] = useState('');
     const [location, setLocation] = useState('');
     const [hour, setHour] = useState(Number);
+
+    const navigate = useNavigate();
 
     const getMonth = (date) => {
         switch(date.substring(3,5)) {
@@ -119,6 +121,7 @@ export default function CommunityPage() {
     const [tokenExists, setTokenExists] = useState(false);
     const [allowedUser, setAllowedUser] = useState(false);
     const [eventExists, setEventExists] = useState(false);
+    const [admin, setAdmin] = useState('');
     const { id } = useParams();
     
     useEffect(() => {
@@ -126,7 +129,7 @@ export default function CommunityPage() {
             const username = process.env.REACT_APP_USERNAME; 
             const password = process.env.REACT_APP_PASSWORD; 
             const credentials = btoa(`${username}:${password}`);
-            const response = await fetch(`http://localhost:8080/events/getCount`, {
+            const response = await fetch(`http://localhost:8080/events/isEventReal/${id}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -136,7 +139,7 @@ export default function CommunityPage() {
             });
             const data = await response.json();
             console.log(typeof data);
-            if(data < id) {
+            if(data.succes === false) {
                 setEventExists(false);
             } else {
                 setEventExists(true);
@@ -178,6 +181,7 @@ export default function CommunityPage() {
                 credentials: 'include'
             });
             const data = await response.json();
+            if(data.success === true) {
             const allowedUsers = data.allowedUsers;
             console.log(allowedUsers);
             console.log(loggedUser);
@@ -187,6 +191,9 @@ export default function CommunityPage() {
             } else {
                 setAllowedUser(false);
             }
+        } else {
+            setAllowedUser(false);
+        }
         })();
         (async () => {
             const username = process.env.REACT_APP_USERNAME;
@@ -202,6 +209,7 @@ export default function CommunityPage() {
             });
             const data = await response.json();
             console.log(data.event);
+            if(data.success === true) {
             const event = data.event;
             setUsers(buildUsers(event.involvedUsers, event.admin));
             setTasks(buildTasks(event.tasks));
@@ -209,7 +217,28 @@ export default function CommunityPage() {
             setDate(event.date);
             setLocation(event.location);
             setHour(event.time);
+            } else {
+                console.log("No event");
+            }
         })();
+        (async () => {
+                    const username = process.env.REACT_APP_USERNAME;
+                    const password = process.env.REACT_APP_PASSWORD;
+                    const credentials = btoa(`${username}:${password}`);
+                    try {
+                        const response = await fetch(`http://localhost:8080/events/getAdmin/${id}`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Basic ${credentials}`
+                        }});
+                        const data = await response.json();
+                        setAdmin(data.message);
+                        console.log("adminul este : " + admin);
+                    } catch (error) {
+                        alert("Error");
+                    }
+        } )();
     }, [id, loggedUser]);
 
     return tokenExists && eventExists && allowedUser ? (
@@ -237,10 +266,10 @@ export default function CommunityPage() {
                                 <p className='font-italic text-gray-600'>{task.description}</p>
                             </div>
 
-                            {/* Progress bar */}
+                            
                             <div className='flex flex-row w-full gap-x-4'>
                                 <div className='flex flex-row w-[90%] h-6 bg-gray-200 rounded-md '> 
-                                    <div className='w-[50%] bg-green-200 h-full rounded-md '/>
+                                    <div className='bg-green-200 h-full rounded-md' style={{ width: `${task.progress}%` }}/>
                                 </div>
                                 <p>
                                     {task.progress}%
@@ -248,8 +277,8 @@ export default function CommunityPage() {
                             </div>
 
                             <div key={index} className='w-full flex flex-row justify-start items-center'>
-                               
                                 <p>{task.assignee}</p>
+                                <button className="shrink-20 inline-block w-40 m-2 rounded-lg bg-black py-2 font-bold text-white" >Mark as done</button>
                             </div>
                             
                         </div>
@@ -271,6 +300,34 @@ export default function CommunityPage() {
                             <p className='text-xs'> {location} @ {getTime(hour)}</p>
                         </div>
                     </div>
+                    <button class="shrink-0 inline-block w-56 rounded-lg bg-black py-3 font-bold text-white" onClick={() => {
+                (async () => {
+                    if(admin === loggedUser) {
+                         const username = process.env.REACT_APP_USERNAME;
+            const password = process.env.REACT_APP_PASSWORD;
+            const credentials = btoa(`${username}:${password}`);
+                    try {
+                        const response = await fetch(`http://localhost:8080/events/deleteEvent/${id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Basic ${credentials}`
+                        }});
+                        const data = await response.json();
+                        console.log(data);
+                        if(data.success === true) {
+                            navigate('/profile');
+                        } else {
+                            alert("Error deleting event");
+                        }
+                    } catch (error) {
+                        alert("Error");
+                    }
+                } else {
+                    alert("You are not the admin of this event");
+                }
+                })();  
+                     }}>Mark event as done</button>
             </div>
         </div>
         <Footer/>
