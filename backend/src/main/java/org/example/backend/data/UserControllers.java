@@ -21,6 +21,8 @@ import org.example.backend.configs.GetProperties;
 public class UserControllers {
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private GetProperties getProperties;
 
     @GetMapping("/getToken")
     public ResponseJson someEndpoint(@CookieValue(name = "token", required = false) String token) {
@@ -43,7 +45,7 @@ public class UserControllers {
 
     @GetMapping("/find/{username}")
     public ResponseJson responseJson(@PathVariable String username){
-        String DB_URL = GetProperties.getURL();
+        String DB_URL = getProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
         MongoCollection<Document> userCollection = database.getCollection("users");
@@ -57,7 +59,7 @@ public class UserControllers {
 
     @PostMapping("/login")
     public ResponseJson login(@RequestBody User userForm, HttpServletResponse response) {
-        String DB_URL = GetProperties.getURL();
+        String DB_URL = getProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
         MongoCollection<Document> userCollection = database.getCollection("users");
@@ -83,7 +85,7 @@ public class UserControllers {
 
     @PostMapping("/register")
     public ResponseJson getUserInfo(@RequestBody User userForm) {
-        String DB_URL = GetProperties.getURL();
+        String DB_URL = getProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
         MongoCollection<Document> userCollection = database.getCollection("users");
