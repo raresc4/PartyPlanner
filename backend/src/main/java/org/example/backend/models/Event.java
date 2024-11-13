@@ -1,9 +1,6 @@
 package org.example.backend.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -11,8 +8,13 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class Event {
+    private int id;
     private String title;
+    private String location;
+    private String date;
+    private String time;
     private List<String> involvedUsers;
     private List<List<String>> tasks;
     private String admin;

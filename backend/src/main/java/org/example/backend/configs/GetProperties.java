@@ -1,8 +1,12 @@
 package org.example.backend.configs;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import java.io.FileInputStream;
 import java.util.Properties;
 
+@Configuration
 public class GetProperties {
     public static String getURL() {
         Properties prop = new Properties();
