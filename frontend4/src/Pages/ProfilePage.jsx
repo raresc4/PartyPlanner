@@ -61,7 +61,7 @@ useEffect( () => {
           </div>
         </div>
 
-        {/* Right Side - Search and Actions */}
+        
         <div className="space-y-4">
           <div className="flex items-center space-x-3">
             <input

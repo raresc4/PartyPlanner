@@ -11,18 +11,19 @@ import org.example.backend.configs.JwtUtil;
 import org.example.backend.models.ResponseJson;
 import org.example.backend.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
-import org.example.backend.configs.GetProperties;
 @RestController
 @RequestMapping("/user")
 public class UserControllers {
     @Autowired
     private JwtUtil jwtUtil;
-    @Autowired
-    private GetProperties getProperties;
+
+    @Value("${DB_URL}")
+    private String DB_URL;
 
     @GetMapping("/getToken")
     public ResponseJson someEndpoint(@CookieValue(name = "token", required = false) String token) {
@@ -45,7 +46,6 @@ public class UserControllers {
 
     @GetMapping("/find/{username}")
     public ResponseJson responseJson(@PathVariable String username){
-        String DB_URL = getProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
         MongoCollection<Document> userCollection = database.getCollection("users");
@@ -59,7 +59,6 @@ public class UserControllers {
 
     @PostMapping("/login")
     public ResponseJson login(@RequestBody User userForm, HttpServletResponse response) {
-        String DB_URL = getProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
         MongoCollection<Document> userCollection = database.getCollection("users");
@@ -85,7 +84,6 @@ public class UserControllers {
 
     @PostMapping("/register")
     public ResponseJson register(@RequestBody User userForm) {
-        String DB_URL = getProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
         MongoCollection<Document> userCollection = database.getCollection("users");

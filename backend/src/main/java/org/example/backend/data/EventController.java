@@ -5,11 +5,10 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
-import org.example.backend.configs.GetProperties;
 import org.example.backend.models.Event;
 import org.example.backend.models.MarkAsDoneRequestDto;
 import org.example.backend.models.ResponseJson;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,13 +16,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/events")
 public class EventController {
-    @Autowired
-    private GetProperties getProperties;
+    @Value("${DB_URL}")
+    private String DB_URL;
 
     @GetMapping("/getAdmin/{name}")
     public ResponseJson getAdmin(@PathVariable String name) {
         try {
-            String DB_URL = getProperties.getURL();
             MongoClient mongoClient = MongoClients.create(DB_URL);
             MongoDatabase database = mongoClient.getDatabase("CoolCluster");
             MongoCollection<Document> eventsCollection = database.getCollection("events");
@@ -41,7 +39,6 @@ public class EventController {
     }
     @PostMapping("/createEvent")
     public ResponseJson createEvent(@RequestBody Event event) {
-        String DB_URL = getProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
         MongoCollection<Document> eventsCollection = database.getCollection("events");
@@ -69,7 +66,6 @@ public class EventController {
     }
     @GetMapping("/getUsers/{name}")
     public ResponseJson getAllowedUsers(@PathVariable String name) {
-        String DB_URL = getProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
         MongoCollection<Document> eventsCollection = database.getCollection("events");
@@ -90,7 +86,6 @@ public class EventController {
 
     @GetMapping("/getEvent/{name}")
     public ResponseJson getEvent(@PathVariable String name) {
-        String DB_URL = getProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
         MongoCollection<Document> eventsCollection = database.getCollection("events");
@@ -113,9 +108,13 @@ public class EventController {
         }
     }
 
+    @GetMapping("/getUserEvents/{username}")
+    public ResponseJson getUserEvents(@PathVariable String username) {
+        return null;
+    }
+
     @PostMapping("/markAsDone")
     public ResponseJson markAsDone(@RequestBody MarkAsDoneRequestDto markAsDoneRequestDto) {
-        String DB_URL = getProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
         MongoCollection<Document> eventsCollection = database.getCollection("events");
@@ -135,7 +134,6 @@ public class EventController {
     }
     @DeleteMapping("/deleteEvent/{name}")
     public ResponseJson deleteEvent(@PathVariable String name) {
-        String DB_URL = getProperties.getURL();
         try {
             MongoClient mongoClient = MongoClients.create(DB_URL);
             MongoDatabase database = mongoClient.getDatabase("CoolCluster");
