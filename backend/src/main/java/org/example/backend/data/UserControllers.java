@@ -30,7 +30,7 @@ public class UserControllers {
         if (token != null) {
             return new ResponseJson(200, true, "Token found", token);
         }
-        return new ResponseJson(404, false, "Token not found",null);
+        return ResponseJson.builder().code(404).success(false).message("Token not found").build();
     }
 
     @GetMapping("/logout")
@@ -41,7 +41,7 @@ public class UserControllers {
         cookie.setSecure(true);
         cookie.setMaxAge(0);
         response.addCookie(cookie);
-        return new ResponseJson(200, true, "Logged out", null);
+        return ResponseJson.builder().code(200).success(true).message("Logged out").build();
     }
 
     @GetMapping("/find/{username}")

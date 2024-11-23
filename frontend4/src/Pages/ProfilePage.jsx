@@ -11,11 +11,14 @@ const ProfilePage = () => {
     const [name, setName] = useState('');
     const navigate = useNavigate();
 
+    const [titles, setTitles] = useState([
+    ]);
+
 useEffect( () => {
-        (async () => {
-            const username2 = process.env.REACT_APP_USERNAME; 
+  const username2 = process.env.REACT_APP_USERNAME; 
           const password2 = process.env.REACT_APP_PASSWORD; 
           const credentials = btoa(`${username2}:${password2}`);
+        (async () => {
             const response = await fetch("http://localhost:8080/user/getToken", {
             method : "GET",
             headers: {
@@ -35,7 +38,24 @@ useEffect( () => {
                 console.log("No token");
             }
         })();
-    }, []);
+        (async () => {
+          try {
+            const response = await fetch(`http://localhost:8080/events/getUserEvents/${loggedUser}`, {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Basic ${credentials}`
+              },
+              credentials: 'include'
+            });
+            const data = await response.json();
+            console.log(data);
+            setTitles(data.titles);
+          } catch (error) {
+            console.log(error);
+          }
+        })();
+}, [loggedUser]);
     const today = new Date().toString();
     const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false); // Ensure this is defined
@@ -53,9 +73,9 @@ useEffect( () => {
             <div>
               <strong className="text-gray-700">Parties:</strong>
               <ul className="list-disc ml-6 mt-2 text-gray-600">
-                <li>Party 1</li>
-                <li>Party 2</li>
-                <li>Party 3</li>
+                {titles && Array.isArray(titles) && titles.map((title, index) => (
+  <li key={index}>{title}</li>
+))}
               </ul>
             </div>
           </div>

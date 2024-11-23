@@ -261,7 +261,6 @@ export default function CommunityPage() {
                                 <button className="shrink-20 inline-block w-40 m-2 rounded-lg bg-black py-2 font-bold text-white"
                                 onClick={() => {
                                     (async () => {
-                                        
                                     })();
                                 }}
                                 >Mark as done</button>
@@ -290,8 +289,8 @@ export default function CommunityPage() {
                 (async () => {
                     if(admin === loggedUser) {
                          const username = process.env.REACT_APP_USERNAME;
-            const password = process.env.REACT_APP_PASSWORD;
-            const credentials = btoa(`${username}:${password}`);
+                        const password = process.env.REACT_APP_PASSWORD;
+                        const credentials = btoa(`${username}:${password}`);
                     try {
                         const response = await fetch(`http://localhost:8080/events/deleteEvent/${name.slice(0,-1)}`, {
                             method: 'DELETE',

@@ -11,6 +11,10 @@ import org.example.backend.models.ResponseJson;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
+import javax.print.Doc;
+import javax.print.DocFlavor;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -31,10 +35,10 @@ public class EventController {
                 String admin = event.getString("admin");
                 return new ResponseJson(200, true, admin);
             } else {
-                return new ResponseJson(404, false, "Admin not found", null);
+                return ResponseJson.builder().code(404).success(false).message("Event not found").build();
             }
         } catch (Exception e) {
-            return new ResponseJson(500, false, "Failed to get admin", null);
+            return ResponseJson.builder().code(500).success(false).message(e.getMessage()).build();
         }
     }
     @PostMapping("/createEvent")
@@ -77,10 +81,10 @@ public class EventController {
             if (involvedUsers != null) {
                 return new ResponseJson(200, true, "Involved users found", null, involvedUsers);
             } else {
-                return new ResponseJson(404, false, "Involved users not found", null);
+                return ResponseJson.builder().code(404).success(false).message("No involved users found").build();
             }
         } else {
-            return new ResponseJson(404, false, "Event not found", null);
+            return ResponseJson.builder().code(404).success(false).message("Event not found").build();
         }
     }
 
@@ -102,35 +106,64 @@ public class EventController {
                     tasks,
                     event.getString("admin"));
             System.out.println(event1);
-            return new ResponseJson(200, true, "Event found", null, null, event1);
+            return ResponseJson.builder().code(200).success(true).message("Event found").event(event1).build();
         } else {
-            return new ResponseJson(404, false, "Event not found", null);
+            return ResponseJson.builder().code(404).success(false).message("Event not found").build();
         }
     }
 
     @GetMapping("/getUserEvents/{username}")
     public ResponseJson getUserEvents(@PathVariable String username) {
-        return null;
+        MongoClient mongoClient = MongoClients.create(DB_URL);
+        MongoDatabase database = mongoClient.getDatabase("CoolCluster");
+        MongoCollection<Document> eventsCollection = database.getCollection("events");
+        List<String> titles = new ArrayList<>();
+        try {
+            List<Document> events = eventsCollection.find(new Document("admin", username)).into(new ArrayList<>());
+            System.out.println(events);
+            for(Document document : events) {
+                if (document.get("admin").equals(username)) {
+                    titles.add(document.getString("title"));
+                }
+            }
+        } catch (Exception e) {
+           return ResponseJson.builder().code(500).success(false).message("No events found").build();
+        }
+        try {
+            List<Document> events = eventsCollection.find(new Document("involvedUsers", username)).into(new ArrayList<>());
+            for(Document document : events) {
+                if (document.get("admin").equals(username) == false) {
+                    titles.add(document.getString("title"));
+                }
+            }
+        } catch (Exception e) {
+            return ResponseJson.builder().code(500).success(false).message("No events found").build();
+        }
+        return ResponseJson.builder().code(200).success(true).message("Events found").titles(titles).build();
     }
 
-    @PostMapping("/markAsDone")
+    @PutMapping("/markAsDone")
     public ResponseJson markAsDone(@RequestBody MarkAsDoneRequestDto markAsDoneRequestDto) {
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
         MongoCollection<Document> eventsCollection = database.getCollection("events");
-        Document event = eventsCollection.find(new Document("title", markAsDoneRequestDto.getRoomName())).first();
-        if(event == null) {
-            return new ResponseJson(404, false, "Event not found");
-        }
-        List<List<String>> tasks = (List<List<String>>) (List<?>) event.get("tasks");
-        List<List<String>> newTasks = tasks;
-        for( List<String> task : tasks) {
-            if(task.get(0).equals(markAsDoneRequestDto.getTaskName())) {
-                newTasks.remove(task);
+        try {
+            Document event = eventsCollection.find(new Document("title", markAsDoneRequestDto.getRoomName())).first();
+            if (event == null) {
+                return new ResponseJson(404, false, "Event not found");
             }
+            List<List<String>> tasks = (List<List<String>>) (List<?>) event.get("tasks");
+            List<List<String>> newTasks = new ArrayList<>();
+            for (List<String> task : tasks) {
+                if(task.get(0).equals(markAsDoneRequestDto.getTaskName()) == false) {
+                    newTasks.add(task);
+                }
+            }
+            eventsCollection.updateOne(new Document("title", markAsDoneRequestDto.getRoomName()), new Document("$set", new Document("tasks", newTasks)));
+            return new ResponseJson(200, true, "Task marked as done");
+        } catch (Exception e) {
+            return new ResponseJson(500, false, e.getMessage());
         }
-        eventsCollection.updateOne(new Document("title", markAsDoneRequestDto.getRoomName()), new Document("$set", new Document("tasks", newTasks)));
-        return new ResponseJson(200, true, "Task marked as done");
     }
     @DeleteMapping("/deleteEvent/{name}")
     public ResponseJson deleteEvent(@PathVariable String name) {
