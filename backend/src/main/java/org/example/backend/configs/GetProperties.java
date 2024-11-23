@@ -2,13 +2,14 @@ package org.example.backend.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import java.io.FileInputStream;
 import java.util.Properties;
 
-@Configuration
+@Component
 public class GetProperties {
-    public static String getURL() {
+    public String getURL() {
         Properties prop = new Properties();
         try {
             prop.load(new FileInputStream("src/main/resources/application.properties"));
@@ -20,7 +21,7 @@ public class GetProperties {
         }
     }
 
-    public static String getTokenSecret() {
+    public String getTokenSecret() {
         Properties prop = new Properties();
         try {
             prop.load(new FileInputStream("src/main/resources/application.properties"));

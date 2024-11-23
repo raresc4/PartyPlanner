@@ -7,6 +7,7 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.example.backend.configs.GetProperties;
 import org.example.backend.models.Event;
+import org.example.backend.models.MarkAsDoneRequestDto;
 import org.example.backend.models.ResponseJson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -19,14 +20,15 @@ public class EventController {
     @Autowired
     private GetProperties getProperties;
 
-    @GetMapping("/getAdmin/{id}")
-    public ResponseJson getAdmin(@PathVariable int id) {
+    @GetMapping("/getAdmin/{name}")
+    public ResponseJson getAdmin(@PathVariable String name) {
         try {
             String DB_URL = getProperties.getURL();
             MongoClient mongoClient = MongoClients.create(DB_URL);
             MongoDatabase database = mongoClient.getDatabase("CoolCluster");
             MongoCollection<Document> eventsCollection = database.getCollection("events");
-            Document event = eventsCollection.find(new Document("id", id)).first();
+            Document event = eventsCollection.find(new Document("title", name)).first();
+            System.out.println(name);
             if (event != null) {
                 String admin = event.getString("admin");
                 return new ResponseJson(200, true, admin);
@@ -42,10 +44,17 @@ public class EventController {
         String DB_URL = getProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
+        MongoCollection<Document> eventsCollection = database.getCollection("events");
         try {
-            MongoCollection<Document> eventsCollection = database.getCollection("events");
-            Document eventDocument = new Document("id", getEventCount() + 1)
-                    .append("title", event.getTitle())
+        Document event1 = eventsCollection.find(new Document("title", event.getTitle())).first();
+            if (event1 != null) {
+                return new ResponseJson(404, false, "Event already exists");
+            }
+         } catch (Exception e) {
+            return new ResponseJson(404, false, "Failed to create event");
+        }
+        try {
+            Document eventDocument = new Document("title", event.getTitle())
                     .append("involvedUsers", event.getInvolvedUsers())
                     .append("tasks", event.getTasks())
                     .append("admin", event.getAdmin())
@@ -58,31 +67,15 @@ public class EventController {
             return new ResponseJson(404, false, "Failed to create event");
         }
     }
-
-    @GetMapping("/isEventReal/{id}")
-    public ResponseJson isEventReal(@PathVariable int id) {
+    @GetMapping("/getUsers/{name}")
+    public ResponseJson getAllowedUsers(@PathVariable String name) {
         String DB_URL = getProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
         MongoCollection<Document> eventsCollection = database.getCollection("events");
-        Document event = eventsCollection.find(new Document("id", id)).first();
+        Document event = eventsCollection.find(new Document("title", name)).first();
         if (event != null) {
-            return new ResponseJson(200, true, "Event found");
-        } else {
-            return new ResponseJson(404, false, "Event not found");
-        }
-    }
-
-    @GetMapping("/getUsers/{id}")
-    public ResponseJson getAllowedUsers(@PathVariable int id) {
-        String DB_URL = getProperties.getURL();
-        MongoClient mongoClient = MongoClients.create(DB_URL);
-        MongoDatabase database = mongoClient.getDatabase("CoolCluster");
-        MongoCollection<Document> eventsCollection = database.getCollection("events");
-        Document event = eventsCollection.find(new Document("id", id)).first();
-
-        if (event != null) {
-            List<String> involvedUsers = event.getList("involvedUsers", String.class);
+            List<String> involvedUsers = event. getList("involvedUsers", String.class);
             String admin = event.getString("admin");
             involvedUsers.add(admin);
             if (involvedUsers != null) {
@@ -95,13 +88,13 @@ public class EventController {
         }
     }
 
-    @GetMapping("/getEvent/{id}")
-    public ResponseJson getEvent(@PathVariable int id) {
+    @GetMapping("/getEvent/{name}")
+    public ResponseJson getEvent(@PathVariable String name) {
         String DB_URL = getProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
         MongoCollection<Document> eventsCollection = database.getCollection("events");
-        Document event = eventsCollection.find(new Document("id", id)).first();
+        Document event = eventsCollection.find(new Document("title", name)).first();
         if (event != null) {
             List<List<String>> tasks = (List<List<String>>) (List<?>) event.get("tasks");
             System.out.println(tasks);
@@ -119,25 +112,37 @@ public class EventController {
             return new ResponseJson(404, false, "Event not found", null);
         }
     }
-    @GetMapping("/getCount")
-    public long getEventCount() {
+
+    @PostMapping("/markAsDone")
+    public ResponseJson markAsDone(@RequestBody MarkAsDoneRequestDto markAsDoneRequestDto) {
         String DB_URL = getProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
         MongoCollection<Document> eventsCollection = database.getCollection("events");
-        return eventsCollection.countDocuments();
+        Document event = eventsCollection.find(new Document("title", markAsDoneRequestDto.getRoomName())).first();
+        if(event == null) {
+            return new ResponseJson(404, false, "Event not found");
+        }
+        List<List<String>> tasks = (List<List<String>>) (List<?>) event.get("tasks");
+        List<List<String>> newTasks = tasks;
+        for( List<String> task : tasks) {
+            if(task.get(0).equals(markAsDoneRequestDto.getTaskName())) {
+                newTasks.remove(task);
+            }
+        }
+        eventsCollection.updateOne(new Document("title", markAsDoneRequestDto.getRoomName()), new Document("$set", new Document("tasks", newTasks)));
+        return new ResponseJson(200, true, "Task marked as done");
     }
-
-    @DeleteMapping("/deleteEvent/{id}")
-    public ResponseJson deleteEvent(@PathVariable int id) {
+    @DeleteMapping("/deleteEvent/{name}")
+    public ResponseJson deleteEvent(@PathVariable String name) {
         String DB_URL = getProperties.getURL();
         try {
             MongoClient mongoClient = MongoClients.create(DB_URL);
             MongoDatabase database = mongoClient.getDatabase("CoolCluster");
             MongoCollection<Document> eventsCollection = database.getCollection("events");
-            Document event = eventsCollection.find(new Document("id", id)).first();
+            Document event = eventsCollection.find(new Document("title", name)).first();
             if (event != null) {
-                eventsCollection.deleteOne(new Document("id", id));
+                eventsCollection.deleteOne(new Document("title", name));
                 return new ResponseJson(200, true, "Event deleted");
             } else {
                 return new ResponseJson(404, false, "Event not found");

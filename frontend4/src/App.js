@@ -14,7 +14,7 @@ function App() {
         <Route path ="/profile" element={ 
           <ProfilePage />
         } />
-        <Route path="/camera/:id" element={<CommunityPage />} />
+        <Route path="/camera/:name" element={<CommunityPage />} />
         <Route path="/" element={<MainPage />} />
       </Routes>
     </BrowserRouter>

@@ -122,29 +122,9 @@ export default function CommunityPage() {
     const [allowedUser, setAllowedUser] = useState(false);
     const [eventExists, setEventExists] = useState(false);
     const [admin, setAdmin] = useState('');
-    const { id } = useParams();
+    const { name } = useParams();
     
     useEffect(() => {
-        (async () => {
-            const username = process.env.REACT_APP_USERNAME; 
-            const password = process.env.REACT_APP_PASSWORD; 
-            const credentials = btoa(`${username}:${password}`);
-            const response = await fetch(`http://localhost:8080/events/isEventReal/${id}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Basic ${credentials}`
-                },
-                credentials: 'include'
-            });
-            const data = await response.json();
-            console.log(typeof data);
-            if(data.succes === false) {
-                setEventExists(false);
-            } else {
-                setEventExists(true);
-            }
-        })();
         (async () => {
             const username2 = process.env.REACT_APP_USERNAME; 
           const password2 = process.env.REACT_APP_PASSWORD; 
@@ -158,10 +138,9 @@ export default function CommunityPage() {
             credentials: 'include'
           });
             const data = await response.json();
-            console.log(data.jwtToken);
+            console.log("Numele este : " + name.slice(0,-1));
             if(data.jwtToken != null){
             const decoded = jwtDecode(data.jwtToken);
-            console.log(decoded.sub);
             setTokenExists(true);
             setLoggedUser(decoded.sub);
             } else {
@@ -172,7 +151,7 @@ export default function CommunityPage() {
             const username = process.env.REACT_APP_USERNAME; 
             const password = process.env.REACT_APP_PASSWORD; 
             const credentials = btoa(`${username}:${password}`);
-            const response = await fetch(`http://localhost:8080/events/getUsers/${id}`, {
+            const response = await fetch(`http://localhost:8080/events/getUsers/${name.slice(0,-1)}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -193,13 +172,14 @@ export default function CommunityPage() {
             }
         } else {
             setAllowedUser(false);
+            console.log(data.message);
         }
         })();
         (async () => {
             const username = process.env.REACT_APP_USERNAME;
             const password = process.env.REACT_APP_PASSWORD;
             const credentials = btoa(`${username}:${password}`);
-            const response = await fetch(`http://localhost:8080/events/getEvent/${id}`, {
+            const response = await fetch(`http://localhost:8080/events/getEvent/${name.slice(0,-1)}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -218,7 +198,7 @@ export default function CommunityPage() {
             setLocation(event.location);
             setHour(event.time);
             } else {
-                console.log("No event");
+                console.log(data.message);
             }
         })();
         (async () => {
@@ -226,7 +206,7 @@ export default function CommunityPage() {
                     const password = process.env.REACT_APP_PASSWORD;
                     const credentials = btoa(`${username}:${password}`);
                     try {
-                        const response = await fetch(`http://localhost:8080/events/getAdmin/${id}`, {
+                        const response = await fetch(`http://localhost:8080/events/getAdmin/${name.slice(0,-1)}`, {
                             method: 'GET',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -234,14 +214,14 @@ export default function CommunityPage() {
                         }});
                         const data = await response.json();
                         setAdmin(data.message);
-                        console.log("adminul este : " + admin);
+                        console.log("adminul este : " + admin + " iar numele este : " + name.slice(0,-1));
                     } catch (error) {
                         alert("Error");
                     }
         } )();
-    }, [id, loggedUser]);
+    }, [loggedUser]);
 
-    return tokenExists && eventExists && allowedUser ? (
+    return tokenExists && allowedUser ? (
         <div className="w-[100vw] h-[100vh] flex flex-col items-start pt-2 pl-2 pr-2 justify-between">
             <Navbar/>
         <div className='w-full h-full flex flex-row justify-center items-start gap-x-8'>
@@ -278,7 +258,13 @@ export default function CommunityPage() {
 
                             <div key={index} className='w-full flex flex-row justify-start items-center'>
                                 <p>{task.assignee}</p>
-                                <button className="shrink-20 inline-block w-40 m-2 rounded-lg bg-black py-2 font-bold text-white" >Mark as done</button>
+                                <button className="shrink-20 inline-block w-40 m-2 rounded-lg bg-black py-2 font-bold text-white"
+                                onClick={() => {
+                                    (async () => {
+                                        
+                                    })();
+                                }}
+                                >Mark as done</button>
                             </div>
                             
                         </div>
@@ -307,7 +293,7 @@ export default function CommunityPage() {
             const password = process.env.REACT_APP_PASSWORD;
             const credentials = btoa(`${username}:${password}`);
                     try {
-                        const response = await fetch(`http://localhost:8080/events/deleteEvent/${id}`, {
+                        const response = await fetch(`http://localhost:8080/events/deleteEvent/${name.slice(0,-1)}`, {
                             method: 'DELETE',
                             headers: {
                                 'Content-Type': 'application/json',

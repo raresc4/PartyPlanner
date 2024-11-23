@@ -14,7 +14,6 @@ const TaskModal = ({ isOpen, onClose }) => {
   const [date , setDate] = useState('');
   const [location, setLocation] = useState('');
   const [hour, setHour] = useState(Number);
-  const [id, setId] = useState(Number);
   const [loggedUser, setLoggedUser] = useState('');
 
  useEffect(() => {
@@ -171,23 +170,6 @@ const TaskModal = ({ isOpen, onClose }) => {
           const username2 = process.env.REACT_APP_USERNAME; 
           const password2 = process.env.REACT_APP_PASSWORD; 
           const credentials = btoa(`${username2}:${password2}`);
-          (async () => {
-              try {
-                const response = await fetch("http://localhost:8080/events/getCount", {
-                  method: "GET",
-                  headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Basic ${credentials}`
-                  },
-                  credentials: 'include'
-                });
-                const data = await response.json();
-                setId(data);
-                console.log(buildTaskList(tasks));
-              } catch (error) {
-                console.error(error);
-              }
-            })();
             (async () => {
               try {
                 const response = await fetch("http://localhost:8080/events/createEvent", {
@@ -198,7 +180,6 @@ const TaskModal = ({ isOpen, onClose }) => {
                   },
                   credentials: 'include',
                   body: JSON.stringify({
-                    id : id,
                     title : title,
                     involvedUsers : buildInvolvedUsers(tasks),
                     tasks : buildTaskList(tasks),

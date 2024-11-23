@@ -84,7 +84,7 @@ public class UserControllers {
     }
 
     @PostMapping("/register")
-    public ResponseJson getUserInfo(@RequestBody User userForm) {
+    public ResponseJson register(@RequestBody User userForm) {
         String DB_URL = getProperties.getURL();
         MongoClient mongoClient = MongoClients.create(DB_URL);
         MongoDatabase database = mongoClient.getDatabase("CoolCluster");
@@ -94,6 +94,8 @@ public class UserControllers {
             String hashedPassword = BCrypt.hashpw(userForm.getPassword(), salt);
             Document user = new Document("username", userForm.getUsername())
                     .append("password", hashedPassword);
+            String accountCreationDate = new java.util.Date().toString();
+            user.append("accountCreationDate", accountCreationDate);
             userCollection.insertOne(user);
            return new ResponseJson(200, true, "User inserted successfully");
         } catch (Exception e) {

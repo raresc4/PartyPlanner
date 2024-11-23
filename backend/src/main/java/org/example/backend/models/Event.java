@@ -1,6 +1,7 @@
 package org.example.backend.models;
 
 import lombok.*;
+import org.springframework.data.annotation.Id;
 
 import java.util.List;
 
@@ -10,6 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @ToString
 public class Event {
+    @Id
     private int id;
     private String title;
     private String location;

@@ -11,10 +11,11 @@ import org.springframework.data.annotation.Id;
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
-
+    @Id
+    private String id;
     private String username;
     private String password;
-
+    private String accountCreationDate;
     @Override
     public String toString() {
         return "User{" +
