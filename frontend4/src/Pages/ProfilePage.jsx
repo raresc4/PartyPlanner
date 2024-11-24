@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { jwtDecode } from 'jwt-decode';
 import TaskModal from '../Components/TaskModal';
 import BaseLayout from '../Layouts/BaseLayout';
+import ChangePasswordModal from '../Components/ChangePasswordModal';
 
 const ProfilePage = () => {
     const [tokenExists, setTokenExists] = useState(false);
@@ -57,11 +58,19 @@ useEffect( () => {
         })();
 }, [loggedUser]);
     const today = new Date().toString();
+    
     const openModal = () => setModalOpen(true);
-  const closeModal = () => setModalOpen(false); // Ensure this is defined
+    const closeModal = () => setModalOpen(false); // Ensure this is defined
+
+
     const [isModalOpen, setModalOpen] = useState(false);
+
+    const [isChangePasswordModalOpen, setChangePasswordModalOpen] = useState(false);
+
+    const openChangePasswordModal = () => setChangePasswordModalOpen(true);
+    const closeChangePasswordModal = () => setChangePasswordModalOpen(false);
   return tokenExists ? (
-    <div className="w-[100vw] h-[100vh] flex flex-col items-start pt-2 pl-2 pr-2 justify-between">
+    <div className="w-[100vw] h-[100vh] bg-white flex items-center justify-center bg-white">
     <BaseLayout>
     <div className="flex flex-1 items-center justify-center bg-gray-100">
       <div className="bg-white p-8 shadow-lg rounded-lg border border-gray-200 max-w-md w-full">
@@ -92,10 +101,10 @@ useEffect( () => {
             />
           </div>
           
-          <div className="flex space-x-3 justify-center">
-            <button className="bg-black text-white px-4 py-2 rounded-lg  transition duration-200" onClick={openModal}>Create Party</button>
+          <div className="grid grid-cols-2 gap-3 justify-center">
+            <button className="bg-black text-white px-4 py-2 rounded-lg  transition duration-200 hover:scale-110 hover:transition-all hover:cursor-pointer" onClick={openModal} >Create Party</button>
             <TaskModal isOpen={isModalOpen} onClose={closeModal}/>
-            <button className="bg-black text-white px-4 py-2 rounded-lg  transition duration-200" onClick={() => {
+            <button className="bg-black text-white px-4 py-2 rounded-lg  transition duration-200 hover:scale-110 hover:transition-all hover:cursor-pointer" onClick={() => {
               (async () => {
                 try {
                   const username2 = process.env.REACT_APP_USERNAME;
@@ -121,6 +130,9 @@ useEffect( () => {
                 }
               })();
             }}>Join Party</button>
+            <button className="bg-black text-white px-4 py-2 rounded-lg  transition duration-200 hover:scale-110 hover:transition-all hover:cursor-pointer" onClick={openChangePasswordModal}>Change password</button>
+            <ChangePasswordModal isOpen={isChangePasswordModalOpen} onClose={closeChangePasswordModal} username={loggedUser}/>
+             <button className="bg-black text-white px-4 py-2 rounded-lg  transition duration-200 hover:scale-110 hover:transition-all hover:cursor-pointer">Delete account</button>
           </div>
         </div>
       </div>

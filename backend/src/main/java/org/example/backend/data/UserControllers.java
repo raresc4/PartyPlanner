@@ -8,6 +8,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bson.Document;
 import org.example.backend.configs.JwtUtil;
+import org.example.backend.models.ChangePasswordRequestDto;
 import org.example.backend.models.ResponseJson;
 import org.example.backend.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,6 +100,26 @@ public class UserControllers {
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseJson(404, false, "User insertion failed");
+        }
+    }
+
+    @PutMapping("/changePassword")
+    public ResponseJson changePassword(@RequestBody ChangePasswordRequestDto changePasswordRequestDto) {
+        MongoClient mongoClient = MongoClients.create(DB_URL);
+        MongoDatabase database = mongoClient.getDatabase("CoolCluster");
+        MongoCollection<Document> userCollection = database.getCollection("users");
+        Document user = userCollection.find(new Document("username", changePasswordRequestDto.getUsername())).first();
+        if(user == null) {
+            return new ResponseJson(404, false, "User not found");
+        }
+        String hashedPassword = user.getString("password");
+        if (BCrypt.checkpw(changePasswordRequestDto.getOldPassword(), hashedPassword)) {
+            String salt = BCrypt.gensalt(10);
+            String newHashedPassword = BCrypt.hashpw(changePasswordRequestDto.getNewPassword(), salt);
+            userCollection.updateOne(new Document("username", changePasswordRequestDto.getUsername()), new Document("$set", new Document("password", newHashedPassword)));
+            return new ResponseJson(200, true, "Password changed successfully");
+        } else {
+            return new ResponseJson(404, false, "Password change failed");
         }
     }
 }

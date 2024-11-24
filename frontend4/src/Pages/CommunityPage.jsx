@@ -12,8 +12,8 @@ const reducer = (state, action) => {
         case 'increment': {
             return state.map((task, index) => {
                 if(index === action.index) {
-                    if(task.counter+1 > 100) {
-                        return { ...task, counter: 100 };
+                    if(task.counter+1 == 100) {
+                        return { ...task, counter: 99 };
                     } else {
                     return { ...task, counter: task.counter + 1 };
                     }
