@@ -261,6 +261,31 @@ export default function CommunityPage() {
                                 <button className="shrink-20 inline-block w-40 m-2 rounded-lg bg-black py-2 font-bold text-white"
                                 onClick={() => {
                                     (async () => {
+                                        const username = process.env.REACT_APP_USERNAME;
+                                        const password = process.env.REACT_APP_PASSWORD;
+                                        const credentials = btoa(`${username}:${password}`);
+                                        try  {
+                                            const response = await fetch("http://localhost:8080/events/markAsDone", {
+                                            method: 'PUT',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'Authorization': `Basic ${credentials}`
+                                            },
+                                            body: JSON.stringify({roomName : name.slice(0,-1), taskName: task.title}),
+                                            credentials: 'include'
+                                        }     
+                                    );
+                                        const data = await response.json();
+                                        if(data.success === true) {
+                                            alert("Task marked as done");
+                                        } else {
+                                            alert("Error marking task as done");
+                                        }
+                                        window.location.reload();
+                                        } catch (error) {
+                                            alert("Error");
+                                        }
+                                        
                                     })();
                                 }}
                                 >Mark as done</button>
