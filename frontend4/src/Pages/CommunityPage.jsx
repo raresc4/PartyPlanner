@@ -1,16 +1,85 @@
-import { useState,useEffect } from "react";
+import { useState,useEffect, useReducer } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { jwtDecode } from 'jwt-decode';
 import Navbar from "../Components/Navbar";
 import Footer from "../Components/Footer";
 
+const reducer = (state, action) => {
+    switch(action.type) {
+        case 'updateTasks': {
+            return action.payload;
+        }
+        case 'increment': {
+            return state.map((task, index) => {
+                if(index === action.index) {
+                    if(task.counter+1 > 100) {
+                        return { ...task, counter: 100 };
+                    } else {
+                    return { ...task, counter: task.counter + 1 };
+                    }
+                } else {
+                    return task;
+                }
+            });
+        }
+        case 'decrement': {
+            return state.map((task, index) => {
+                if(index === action.index) {
+                    if(task.counter-1 < 0) {
+                        return { ...task, counter: 0 };
+                    } else {
+                    return { ...task, counter: task.counter - 1 };
+                    }
+                } else {
+                    return task;
+                }
+            });
+        }
+        default: {
+            return state;
+        }
+    }
+}
+
 export default function CommunityPage() {
+
     const [title, setTitle] = useState('');
     const [date , setDate] = useState('');
     const [location, setLocation] = useState('');
     const [hour, setHour] = useState(Number);
 
     const navigate = useNavigate();
+
+    const initialTasks = [
+        {
+            title: 'Task 1',
+            description: 'Description 1',
+            progress: 50,
+            assignee: 'john_doe',
+            counter : 0
+        }, 
+        {
+            title: 'Task 2',
+            description: 'Description 2',
+            progress: 50,
+            assignee: 'jane_doe',
+            counter : 0
+        },
+        {
+            title: 'Task 3',
+            description: 'Description 3',
+            progress: 50,
+            assignee: 'john_doe',
+            counter : 0
+        }, 
+        {
+            title: 'Task 4',
+            description: 'Description 4',
+            progress: 50,
+            assignee: 'jane_doe',
+            counter : 0
+        }
+    ];
 
     const getMonth = (date) => {
         switch(date.substring(3,5)) {
@@ -67,7 +136,8 @@ export default function CommunityPage() {
                 title: task[0],
                 description: task[1],
                 progress: task[2],
-                assignee: task[3]
+                assignee: task[3],
+                counter : 0
             });
         });
         return taskList;
@@ -88,35 +158,17 @@ export default function CommunityPage() {
         }
     ]);
 
-    const [ tasks, setTasks ] = useState([
-        {
-            title: 'Task 1',
-            description: 'Description 1',
-            progress: 50,
-            assignee: 'john_doe',
-        }, 
-        {
-            title: 'Task 2',
-            description: 'Description 2',
-            progress: 50,
-            assignee: 'jane_doe',
-        },
-        {
-            title: 'Task 3',
-            description: 'Description 3',
-            progress: 50,
-            assignee: 'john_doe',
-        }, 
-        {
-            title: 'Task 4',
-            description: 'Description 4',
-            progress: 50,
-            assignee: 'jane_doe',
-        }
-    ]);
+    const [state, dispatch] = useReducer(reducer, initialTasks);
 
-    const user = process.env.REACT_APP_USERNAME;
-    const pass = process.env.REACT_APP_PASSWORD;
+    const handleIncrement = (index) => {
+        dispatch({type : 'increment', index});
+    };
+
+    const handleUpdateTasks = (event) => {
+    const newTasks = buildTasks(event.tasks); 
+    dispatch({ type: 'updateTasks', payload: newTasks });
+};
+
     const [loggedUser, setLoggedUser] = useState('');
     const [tokenExists, setTokenExists] = useState(false);
     const [allowedUser, setAllowedUser] = useState(false);
@@ -192,7 +244,7 @@ export default function CommunityPage() {
             if(data.success === true) {
             const event = data.event;
             setUsers(buildUsers(event.involvedUsers, event.admin));
-            setTasks(buildTasks(event.tasks));
+            dispatch({ type: 'updateTasks', payload: buildTasks(event.tasks) });
             setTitle(event.title);
             setDate(event.date);
             setLocation(event.location);
@@ -239,7 +291,7 @@ export default function CommunityPage() {
                 <div className="w-full flex flex-col gap-y-4 border-gray-600 border-8 p-4">
                     <h1 className='text-2xl font-bold'> Tasks </h1>
 
-                    {tasks.map((task, index) => (
+                    {state.map((task, index) => (
                         <div key={index} className='w-full flex flex-col justify-start items-center'>
                             <div className='w-full flex flex-col gap-x-4 items-start justify-center'>
                                 <h2 className='text-xl font-bold'>{task.title}</h2>
@@ -289,6 +341,39 @@ export default function CommunityPage() {
                                     })();
                                 }}
                                 >Mark as done</button>
+                                <button className="shrink-20 inline-block w-10 m-2 rounded-lg bg-black py-2 font-bold text-white"
+                                onClick={() => {dispatch({type : 'decrement', index})}}>-</button>
+                                <button className="shrink-20 inline-block w-10 m-2 rounded-lg bg-black py-2 font-bold text-white"
+                                onClick={() => dispatch({ type: 'increment', index })}>+</button>
+                                <div>{task.counter}</div>
+                                <button className="shrink-20 inline-block w-40 m-2 rounded-lg bg-black py-2 font-bold text-white" 
+                                onClick={() => {
+                                    (async () => {
+                                        const username = process.env.REACT_APP_USERNAME;
+                                        const password = process.env.REACT_APP_PASSWORD;
+                                        const credentials = btoa(`${username}:${password}`);
+                                        try  {
+                                        const response = await fetch("http://localhost:8080/events/updateTaskProgress", {
+                                            method: 'PUT',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'Authorization': `Basic ${credentials}`
+                                            },
+                                            body: JSON.stringify({roomName : name.slice(0,-1), taskName: task.title, progress: task.counter}),
+                                            credentials: 'include'
+                                        });
+                                        const data = await response.json();
+                                        if(data.success === true) {
+                                            alert("Task progress updated");
+                                            window.location.reload();
+                                        } else {
+                                            alert("Error updating task progress");
+                                        }
+                                    } catch (error) {
+                                        alert("Error");
+                                    }
+                                    })();
+                                }}>Set progress</button>
                             </div>
                             
                         </div>

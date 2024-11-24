@@ -8,6 +8,7 @@ import org.bson.Document;
 import org.example.backend.models.Event;
 import org.example.backend.models.MarkAsDoneRequestDto;
 import org.example.backend.models.ResponseJson;
+import org.example.backend.models.UpdateTaskProgressRequestDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
@@ -161,6 +162,31 @@ public class EventController {
             }
             eventsCollection.updateOne(new Document("title", markAsDoneRequestDto.getRoomName()), new Document("$set", new Document("tasks", newTasks)));
             return new ResponseJson(200, true, "Task marked as done");
+        } catch (Exception e) {
+            return new ResponseJson(500, false, e.getMessage());
+        }
+    }
+
+    @PutMapping("updateTaskProgress")
+    public ResponseJson updateTaskProgress(@RequestBody UpdateTaskProgressRequestDto updateTaskProgressRequestDto) {
+        MongoClient mongoClient = MongoClients.create(DB_URL);
+        MongoDatabase database = mongoClient.getDatabase("CoolCluster");
+        MongoCollection<Document> eventsCollection = database.getCollection("events");
+        try {
+            Document event = eventsCollection.find(new Document("title", updateTaskProgressRequestDto.getRoomName())).first();
+            if (event == null) {
+                return new ResponseJson(404, false, "Event not found");
+            }
+            List<List<String>> tasks = (List<List<String>>) (List<?>) event.get("tasks");
+            List<List<String>> newTasks = new ArrayList<>();
+            for (List<String> task : tasks) {
+                if (task.get(0).equals(updateTaskProgressRequestDto.getTaskName())) {
+                    task.set(2, updateTaskProgressRequestDto.getProgress());
+                }
+                newTasks.add(task);
+            }
+            eventsCollection.updateOne(new Document("title", updateTaskProgressRequestDto.getRoomName()), new Document("$set", new Document("tasks", newTasks)));
+            return new ResponseJson(200, true, "Task progress updated");
         } catch (Exception e) {
             return new ResponseJson(500, false, e.getMessage());
         }
