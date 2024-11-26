@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createElement } from 'react';
 import { useEffect,useState } from 'react';
 import { useNavigate } from 'react-router';
 import { jwtDecode } from 'jwt-decode';
@@ -6,14 +6,21 @@ import TaskModal from '../Components/TaskModal';
 import BaseLayout from '../Layouts/BaseLayout';
 import ChangePasswordModal from '../Components/ChangePasswordModal';
 
+function verifyType(data) {
+  if(typeof data === 'string') {
+    return true;
+  } 
+  return false;
+}
+
 const ProfilePage = () => {
     const [tokenExists, setTokenExists] = useState(false);
     const [loggedUser, setLoggedUser] = useState('');
     const [name, setName] = useState('');
     const navigate = useNavigate();
 
-    const [titles, setTitles] = useState([
-    ]);
+    const [titles, setTitles] = useState([]);
+    const [createdDate, setCreatedDate] = useState('');
 
 useEffect( () => {
   const username2 = process.env.REACT_APP_USERNAME; 
@@ -52,15 +59,16 @@ useEffect( () => {
             const data = await response.json();
             console.log(data);
             setTitles(data.titles);
+            setCreatedDate(data.createdDate);
           } catch (error) {
             console.log(error);
           }
         })();
-}, [loggedUser]);
+}, [loggedUser, createdDate, titles]);
     const today = new Date().toString();
     
     const openModal = () => setModalOpen(true);
-    const closeModal = () => setModalOpen(false); // Ensure this is defined
+    const closeModal = () => setModalOpen(false); 
 
 
     const [isModalOpen, setModalOpen] = useState(false);
@@ -78,7 +86,7 @@ useEffect( () => {
           <h2 className="text-2xl font-semibold mb-4 text-gray-800">{loggedUser}'s Profile</h2>
           <div className="space-y-3">
             <p className="text-gray-600"><strong>Last Login:</strong> {today.slice(0,15)}</p>
-            <p className="text-gray-600"><strong>Account Created:</strong> Jan 12, 2023</p>
+            <p className="text-gray-600"><strong>Account Created:</strong> {verifyType(createdDate) ?  createdDate.slice(4,9) + ' ' + createdDate.slice(24,29) : '' }</p>
             <div>
               <strong className="text-gray-700">Parties:</strong>
               <ul className="list-disc ml-6 mt-2 text-gray-600">

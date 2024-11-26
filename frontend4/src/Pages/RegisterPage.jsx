@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import axios from "axios";
 
 export default function RegisterPage() {
@@ -7,6 +8,8 @@ export default function RegisterPage() {
     const [password, setPassword] = useState('');
     const [next, setNext] = useState(true);
     const [salt, setSalt] = useState(Number);
+
+    const navigator = useNavigate();
 
     const user = process.env.REACT_APP_USERNAME;
     const pass = process.env.REACT_APP_PASSWORD;
@@ -32,7 +35,7 @@ export default function RegisterPage() {
       <input type="password" onChange={(e) => setPassword(e.target.value)} id="password" class="w-full flex-1 appearance-none border-blue-300 bg-white px-4 py-2 text-base text-gray-700 placeholder-gray-400 focus:outline-none" placeholder="Password" />
     </div>
   </div>
-  <button class="mb-6 rounded-xl bg-black px-8 py-3 font-medium text-white hover:bg-blue-700"
+  <button class="mb-6 rounded-xl bg-black px-8 py-3 font-medium text-white hover:scale-110 transition"
   onClick={() => {
     axios.get("http://localhost:8080/user/find/" + username, {},{
       auth: {
@@ -47,7 +50,6 @@ export default function RegisterPage() {
         alert("User already exists");
         setNext(false);
       } else {
-        alert("Passed1");
       axios.post("http://localhost:8080/user/register", {
         username: username,
         password: password
@@ -59,6 +61,7 @@ export default function RegisterPage() {
       }).then((response) => {
         if(response.data.code === 200){
           alert("User created successfully");
+          navigator("/login");
         } else {
           alert("Failed to create user");
         }
