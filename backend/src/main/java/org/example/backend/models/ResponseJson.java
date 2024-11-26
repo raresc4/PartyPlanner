@@ -18,6 +18,7 @@ public class ResponseJson {
     private List<String> allowedUsers;
     private Event event;
     private List<String> titles;
+    private String createdDate;
 
     public ResponseJson(int code, boolean success, String message, Event event) {
         this.code = code;

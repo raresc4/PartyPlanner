@@ -140,7 +140,13 @@ public class EventController {
         } catch (Exception e) {
             return ResponseJson.builder().code(500).success(false).message("No events found").build();
         }
-        return ResponseJson.builder().code(200).success(true).message("Events found").titles(titles).build();
+        MongoCollection<Document> usersCollection = database.getCollection("users");
+        Document user = usersCollection.find(new Document("username", username)).first();
+        if (user == null) {
+            return ResponseJson.builder().code(404).success(false).message("User not found").build();
+        }
+        String createdDate = user.getString("accountCreationDate");
+        return ResponseJson.builder().code(200).success(true).message("Events found").titles(titles).createdDate(createdDate).build();
     }
 
     @PutMapping("/markAsDone")
