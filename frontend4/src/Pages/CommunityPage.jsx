@@ -51,34 +51,7 @@ export default function CommunityPage() {
     const navigate = useNavigate();
 
     const initialTasks = [
-        {
-            title: 'Task 1',
-            description: 'Description 1',
-            progress: 50,
-            assignee: 'john_doe',
-            counter : 0
-        }, 
-        {
-            title: 'Task 2',
-            description: 'Description 2',
-            progress: 50,
-            assignee: 'jane_doe',
-            counter : 0
-        },
-        {
-            title: 'Task 3',
-            description: 'Description 3',
-            progress: 50,
-            assignee: 'john_doe',
-            counter : 0
-        }, 
-        {
-            title: 'Task 4',
-            description: 'Description 4',
-            progress: 50,
-            assignee: 'jane_doe',
-            counter : 0
-        }
+       
     ];
 
     const getMonth = (date) => {
@@ -243,8 +216,14 @@ export default function CommunityPage() {
             console.log(data.event);
             if(data.success === true) {
             const event = data.event;
+            if(event.involvedUsers) {
             setUsers(buildUsers(event.involvedUsers, event.admin));
-            dispatch({ type: 'updateTasks', payload: buildTasks(event.tasks) });
+            } else {
+                setUsers(buildUsers([], event.admin));
+            }
+            if(event.tasks) {
+            dispatch({ type: 'updateTasks', payload: buildTasks(event.tasks) }); 
+            }
             setTitle(event.title);
             setDate(event.date);
             setLocation(event.location);
@@ -281,7 +260,14 @@ export default function CommunityPage() {
                 <h1 className='text-2xl font-bold'> Members </h1>
                 {users.map((user, index) => (
                     <div key={index} className='flex flex-row justify-start items-center gap-x-2'>
+                        { user.name === admin ? 
+                        <>
+                        <p className="text-md w-full">{user.name} (admin)</p>
+                        </> : 
+                        <>
                         <p className="text-md w-full">{user.name}</p>
+                        </>
+}
                     </div>
                 ))}
                 
@@ -310,7 +296,8 @@ export default function CommunityPage() {
 
                             <div key={index} className='w-full flex flex-row justify-start items-center'>
                                 <p>{task.assignee}</p>
-                                <button className="shrink-20 inline-block w-40 m-2 rounded-lg bg-black py-2 font-bold text-white"
+                                {(task.assignee === loggedUser || loggedUser === admin)   && <>
+                                        <button className="shrink-20 inline-block w-40 m-2 rounded-lg bg-black py-2 font-bold text-white"
                                 onClick={() => {
                                     (async () => {
                                         const username = process.env.REACT_APP_USERNAME;
@@ -374,6 +361,7 @@ export default function CommunityPage() {
                                     }
                                     })();
                                 }}>Set progress</button>
+                                </>}
                             </div>
                             
                         </div>

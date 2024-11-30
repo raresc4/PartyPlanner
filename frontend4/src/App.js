@@ -4,6 +4,7 @@ import RegisterPage from './Pages/RegisterPage';
 import CommunityPage from './Pages/CommunityPage';
 import MainPage from './Pages/MainPage';
 import ProfilePage from './Pages/ProfilePage';
+import AboutPage from './Pages/AboutPage';
 
 function App() {
   return (
@@ -16,6 +17,9 @@ function App() {
         } />
         <Route path="/camera/:name" element={<CommunityPage />} />
         <Route path="/" element={<MainPage />} />
+        <Route path="/about" element={
+          <AboutPage />} 
+          />
       </Routes>
     </BrowserRouter>
   );

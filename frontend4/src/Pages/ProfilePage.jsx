@@ -57,14 +57,13 @@ useEffect( () => {
               credentials: 'include'
             });
             const data = await response.json();
-            console.log(data);
             setTitles(data.titles);
             setCreatedDate(data.createdDate);
           } catch (error) {
             console.log(error);
           }
         })();
-}, [loggedUser, createdDate, titles]);
+}, [loggedUser, setLoggedUser, createdDate]);
     const today = new Date().toString();
     
     const openModal = () => setModalOpen(true);
@@ -80,13 +79,13 @@ useEffect( () => {
   return tokenExists ? (
     <div className="w-[100vw] h-[100vh] bg-white flex items-center justify-center bg-white">
     <BaseLayout>
-    <div className="flex flex-1 items-center justify-center bg-gray-100">
+    <div className="flex flex-1 items-center justify-center bg-white">
       <div className="bg-white p-8 shadow-lg rounded-lg border border-gray-200 max-w-md w-full">
         <div className="flex flex-col items-center text-center mb-6">
           <h2 className="text-2xl font-semibold mb-4 text-gray-800">{loggedUser}'s Profile</h2>
           <div className="space-y-3">
             <p className="text-gray-600"><strong>Last Login:</strong> {today.slice(0,15)}</p>
-            <p className="text-gray-600"><strong>Account Created:</strong> {verifyType(createdDate) ?  createdDate.slice(4,9) + ' ' + createdDate.slice(24,29) : '' }</p>
+            <p className="text-gray-600"><strong>Account Created:</strong> {verifyType(createdDate) ?  createdDate.slice(4,9) + ' ' + createdDate.slice(24,29) : 'No data' }</p>
             <div>
               <strong className="text-gray-700">Parties:</strong>
               <ul className="list-disc ml-6 mt-2 text-gray-600">
@@ -140,7 +139,34 @@ useEffect( () => {
             }}>Join Party</button>
             <button className="bg-black text-white px-4 py-2 rounded-lg  transition duration-200 hover:scale-110 hover:transition-all hover:cursor-pointer" onClick={openChangePasswordModal}>Change password</button>
             <ChangePasswordModal isOpen={isChangePasswordModalOpen} onClose={closeChangePasswordModal} username={loggedUser}/>
-             <button className="bg-black text-white px-4 py-2 rounded-lg  transition duration-200 hover:scale-110 hover:transition-all hover:cursor-pointer">Delete account</button>
+             <button className="bg-black text-white px-4 py-2 rounded-lg  transition duration-200 hover:scale-110 hover:transition-all hover:cursor-pointer" onClick={() => {
+              ( async () => {
+                try {
+                  const username2 = process.env.REACT_APP_USERNAME;
+                  const password2 = process.env.REACT_APP_PASSWORD;
+                  const credentials = btoa(`${username2}:${password2}`);
+                  const response = await fetch(`http://localhost:8080/user/delete/${loggedUser}`, {
+                    method: "DELETE",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "Authorization": `Basic ${credentials}`
+                    },
+                    credentials: 'include'
+                }
+                );
+                const data = await response.json();
+                if(data.success === true) {
+                  alert("Account deleted successfully");
+                  navigate("/");
+                } else {
+                  alert("Failed to delete account");
+                }
+              } catch (error) {
+                throw new Error(error.message);
+              }
+            }
+            )();
+             }}>Delete account</button>
           </div>
         </div>
       </div>
