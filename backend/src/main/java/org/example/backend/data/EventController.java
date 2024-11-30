@@ -77,6 +77,16 @@ public class EventController {
         Document event = eventsCollection.find(new Document("title", name)).first();
         if (event != null) {
             List<String> involvedUsers = event. getList("involvedUsers", String.class);
+            if(involvedUsers == null) {
+                String admin = event.getString("admin");
+                List<String> allowedUsers = new ArrayList<>();
+                allowedUsers.add(admin);
+                if(allowedUsers != null) {
+                    return new ResponseJson(200, true, "Allowed users found", null, allowedUsers);
+                } else {
+                    return ResponseJson.builder().code(404).success(false).message("No allowed users found").build();
+                }
+            }
             String admin = event.getString("admin");
             involvedUsers.add(admin);
             if (involvedUsers != null) {

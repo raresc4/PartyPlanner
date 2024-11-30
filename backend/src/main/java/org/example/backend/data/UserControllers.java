@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/user")
 public class UserControllers {
@@ -121,5 +123,68 @@ public class UserControllers {
         } else {
             return new ResponseJson(404, false, "Password change failed");
         }
+    }
+
+    @DeleteMapping("/delete/{username}")
+    public ResponseJson deleteUser(@PathVariable String username) {
+        MongoClient mongoClient = MongoClients.create(DB_URL);
+        MongoDatabase database = mongoClient.getDatabase("CoolCluster");
+        MongoCollection<Document> userCollection = database.getCollection("users");
+        try {
+            Document user = userCollection.find(new Document("username", username)).first();
+            if(user == null) {
+                return ResponseJson.builder().code(404).success(false).message("User not found").build();
+            }
+            userCollection.deleteOne(new Document("username", username));
+        } catch (Exception e) {
+            return ResponseJson.builder().code(404).success(false).message(e.getMessage()).build();
+        }
+        MongoCollection<Document> eventCollection = database.getCollection("events");
+        try {
+            for (Document event : eventCollection.find()) {
+                boolean userExists = false;
+                if (event.getString("admin").equals(username)) {
+                    List<String> involvedUsers = event.getList("involvedUsers", String.class);
+                    if (involvedUsers == null) {
+                        userExists = true;
+                        eventCollection.deleteOne(new Document("admin", username));
+                    } else {
+                        String newAdmin = null;
+                        while (newAdmin == null) {
+                            for (String involvedUser : involvedUsers) {
+                                if (!involvedUser.equals(username)) {
+                                    newAdmin = involvedUser;
+                                    break;
+                                }
+                            }
+                        }
+                        eventCollection.updateOne(new Document("admin", username), new Document("$set", new Document("admin", newAdmin)));
+                    }
+                }
+
+                if (!userExists) {
+                    List<String> involvedUsers = event.getList("involvedUsers", String.class);
+                    List<String> newInvolvedUsers = null;
+                    for (String involvedUser : involvedUsers) {
+                        if (!involvedUser.equals(username)) {
+                            newInvolvedUsers.add(involvedUser);
+                        }
+                    }
+                    eventCollection.updateOne(new Document("involvedUsers", event.get("involvedUsers")), new Document("$set", new Document("involvedUsers", newInvolvedUsers)));
+
+                    List<List<String>> tasks = (List<List<String>>) (List<?>) event.get("tasks");
+                    List<List<String>> newTasks = null;
+                    for (List<String> task : tasks) {
+                        if (!task.get(3).equals(username)) {
+                            newTasks.add(task);
+                        }
+                    }
+                    eventCollection.updateOne(new Document("tasks", event.get("tasks")), new Document("$set", new Document("tasks", newTasks)));
+                }
+            }
+        } catch (Exception e) {
+            return ResponseJson.builder().code(404).success(false).message(e.getMessage()).build();
+        }
+        return ResponseJson.builder().code(200).success(true).message("User deleted successfully").build();
     }
 }
